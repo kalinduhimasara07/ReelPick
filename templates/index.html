@@ -527,27 +527,52 @@
         <p class="error">{{ error }}</p>
         {% endif %}
 
+        
         {% if state == 'initial' %}
         <h2 class="main-heading">🚀 Start Your Journey - Search for a Movie!</h2>
 
+        
         {% elif state == 'browse' %}
-        <h2>✨ Your Recent Searches</h2>
+            
+            {% if searched_movies %}
+                <h2>✨ Your Recent Searches</h2>
+                <ul class="history-grid">
+                    {% for movie in searched_movies %}
+                    <li class="movie-card" onclick="showMovieDetails('{{ movie.movie_id }}')">
+                        <img src="{{ movie.poster_url }}" alt="{{ movie.title }} Poster"
+                            onerror="this.onerror=null; this.src='https://via.placeholder.com/200x300?text=Poster+Not+Found'">
+                        <div class="card-info">
+                            <div class="title">{{ movie.title }}</div>
+                            <div style="font-style: italic; color: #7f8c8d;">(Your Search)</div>
+                        </div>
+                        <div class="click-info">ℹ️ Click for Details</div>
+                    </li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
 
-        <ul class="history-grid">
-            {% for result in search_history|reverse %}
-            {% set movie = result.searched_movie %}
-            <li class="movie-card" onclick="showMovieDetails('{{ movie.movie_id }}')">
-                <img src="{{ movie.poster_url }}" alt="{{ movie.title }} Poster"
-                    onerror="this.onerror=null; this.src='https://via.placeholder.com/200x300?text=Poster+Not+Found'">
-                <div class="card-info">
-                    <div class="title">{{ movie.title }}</div>
-                    <div style="font-style: italic; color: #7f8c8d;">(Your Search)</div>
-                </div>
-                <div class="click-info">ℹ️ Click for Details</div>
-            </li>
-            {% endfor %}
-        </ul>
+            {% if recommendations %}
+                <h2>🍿 Movies You Might Like (Based on Your History)</h2>
+                <ul class="recommendations-grid">
+                    {% for movie in recommendations %}
+                    <li class="movie-card" onclick="showMovieDetails('{{ movie.movie_id }}')">
+                        <img src="{{ movie.poster_url }}" alt="{{ movie.title }} Poster"
+                            onerror="this.onerror=null; this.src='https://via.placeholder.com/200x300?text=Poster+Not+Found'">
+                        <div class="card-info">
+                            <div class="title">{{ movie.title }}</div>
+                            {% if movie.similarity %}
+                            <div class="similarity">{{ movie.similarity }} Match</div>
+                            {% endif %}
+                        </div>
+                        <div class="click-info">ℹ️ Click for Details</div>
+                    </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                 <p>No recommendations found yet. Try searching for another movie!</p>
+            {% endif %}
 
+        
         {% elif state == 'results' %}
         <h2>🌟 Latest Recommendations</h2>
 
@@ -591,7 +616,6 @@
         {% endif %}
     </div>
 
-    <!-- Modal -->
     <div id="movieModal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeModal()">&times;</span>
@@ -639,72 +663,72 @@
                     const rating = data.vote_average > 0 ? `${data.vote_average.toFixed(1)}/10` : 'N/A';
 
                     modalBody.innerHTML = `
-                        <div class="modal-backdrop" style="${backdropStyle}"></div>
-                        <div class="modal-header">
-                            <h2>${data.title}</h2>
-                            ${data.tagline ? `<div class="modal-tagline">"${data.tagline}"</div>` : ''}
-                        </div>
-                        <div class="modal-body">
-                            <div class="modal-info-grid">
-                                <div class="info-item">
-                                    <div class="label">Rating</div>
-                                    <div class="value">⭐ ${rating}</div>
-                                </div>
-                                <div class="info-item">
-                                    <div class="label">Release Date</div>
-                                    <div class="value">${data.release_date}</div>
-                                </div>
-                                <div class="info-item">
-                                    <div class="label">Runtime</div>
-                                    <div class="value">${runtime}</div>
-                                </div>
-                                <div class="info-item">
-                                    <div class="label">Status</div>
-                                    <div class="value">${data.status}</div>
-                                </div>
+                            <div class="modal-backdrop" style="${backdropStyle}"></div>
+                            <div class="modal-header">
+                                <h2>${data.title}</h2>
+                                ${data.tagline ? `<div class="modal-tagline">"${data.tagline}"</div>` : ''}
                             </div>
-                            
-                            ${data.genres.length > 0 ? `
-                                <div class="genre-tags">
-                                    ${data.genres.map(genre => `<span class="genre-tag">${genre}</span>`).join('')}
+                            <div class="modal-body">
+                                <div class="modal-info-grid">
+                                    <div class="info-item">
+                                        <div class="label">Rating</div>
+                                        <div class="value">⭐ ${rating}</div>
+                                    </div>
+                                    <div class="info-item">
+                                        <div class="label">Release Date</div>
+                                        <div class="value">${data.release_date}</div>
+                                    </div>
+                                    <div class="info-item">
+                                        <div class="label">Runtime</div>
+                                        <div class="value">${runtime}</div>
+                                    </div>
+                                    <div class="info-item">
+                                        <div class="label">Status</div>
+                                        <div class="value">${data.status}</div>
+                                    </div>
                                 </div>
-                            ` : ''}
-                            
-                            <div class="modal-overview">
-                                <strong>Overview:</strong><br>
-                                ${data.overview}
+                                
+                                ${data.genres.length > 0 ? `
+                                    <div class="genre-tags">
+                                        ${data.genres.map(genre => `<span class="genre-tag">${genre}</span>`).join('')}
+                                    </div>
+                                ` : ''}
+                                
+                                <div class="modal-overview">
+                                    <strong>Overview:</strong><br>
+                                    ${data.overview}
+                                </div>
+                                
+                                <div class="modal-info-grid">
+                                    <div class="info-item">
+                                        <div class="label">Budget</div>
+                                        <div class="value">${budget}</div>
+                                    </div>
+                                    <div class="info-item">
+                                        <div class="label">Revenue</div>
+                                        <div class="value">${revenue}</div>
+                                    </div>
+                                    <div class="info-item">
+                                        <div class="label">Votes</div>
+                                        <div class="value">${data.vote_count.toLocaleString()}</div>
+                                    </div>
+                                </div>
+                                
+                                ${data.production_companies.length > 0 ? `
+                                    <div class="production-companies">
+                                        <strong>Production:</strong> ${data.production_companies.join(', ')}
+                                    </div>
+                                ` : ''}
+                                
+                                ${data.homepage ? `
+                                    <div style="text-align: center; margin-top: 30px;">
+                                        <a href="${data.homepage}" target="_blank" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 30px; border-radius: 25px; text-decoration: none; font-weight: 600;">
+                                            🌐 Visit Official Website
+                                        </a>
+                                    </div>
+                                ` : ''}
                             </div>
-                            
-                            <div class="modal-info-grid">
-                                <div class="info-item">
-                                    <div class="label">Budget</div>
-                                    <div class="value">${budget}</div>
-                                </div>
-                                <div class="info-item">
-                                    <div class="label">Revenue</div>
-                                    <div class="value">${revenue}</div>
-                                </div>
-                                <div class="info-item">
-                                    <div class="label">Votes</div>
-                                    <div class="value">${data.vote_count.toLocaleString()}</div>
-                                </div>
-                            </div>
-                            
-                            ${data.production_companies.length > 0 ? `
-                                <div class="production-companies">
-                                    <strong>Production:</strong> ${data.production_companies.join(', ')}
-                                </div>
-                            ` : ''}
-                            
-                            ${data.homepage ? `
-                                <div style="text-align: center; margin-top: 30px;">
-                                    <a href="${data.homepage}" target="_blank" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 30px; border-radius: 25px; text-decoration: none; font-weight: 600;">
-                                        🌐 Visit Official Website
-                                    </a>
-                                </div>
-                            ` : ''}
-                        </div>
-                    `;
+                        `;
                 })
                 .catch(error => {
                     console.error('Error:', error);
